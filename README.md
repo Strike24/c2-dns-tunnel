@@ -1,0 +1,7 @@
+# DNS Tunneling C2 Server
+This project is a Command and Control server written in C, designed to establish communication through the DNS protocol. (DNS Tunneling)
+
+Instead of traditional TCP/IP methods, the server uses raw socket manipulation to intercept what appears to be normal DNS traffic.
+This way, it can bypass firewalls and network blocking, "Smuggeling" data in and out.
+
+> This project is being worked on and is not a finished product.
