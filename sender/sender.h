@@ -1,7 +1,17 @@
 #define MAX_BUFFER_SIZE 1024
 
-#include <stdio.h>  // Standard Input/Output
-#include <stdlib.h> // Standard Library
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
-#include <arpa/nameser.h>
-#include <resolv.h>
+#include <netdb.h>
+#include <unistd.h>
+
+#define DNS_HEADER_SIZE 12
+#define MAX_UDP_PACKET_SIZE 65536
+
+#include "../headers/structs.h"
+
+int send_dns_query(const char *server_ip, const char *domain, char *response, int response_size);

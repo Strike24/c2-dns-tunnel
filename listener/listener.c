@@ -128,12 +128,13 @@ void send_response(int sockfd, char *request_buffer, int request_len, struct dns
     struct dns_answer *answer = (struct dns_answer *)(reply_buffer + DNS_HEADER_SIZE + q_len);
 
     // Payload Data
-    const char *txt_data = "C2_RESPONSE_OK";
+    char txt_data[256];
+    extractPayload(parsed_packet->question.name, txt_data);
     int txt_len = strlen(txt_data);
 
-    answer->name = htons(0xC00C); // Pointer to Question Name
-    answer->type = htons(16);     // TXT
-    answer->class = htons(1);     // Class IN
+    answer->name = htons(0xC00C); // Pointer to question name
+    answer->qtype = htons(16);    // TXT
+    answer->qclass = htons(1);    // Class IN
     answer->ttl = htonl(60);      // TTL 60s
     answer->data_len = htons(txt_len + 1);
 
@@ -146,4 +147,23 @@ void send_response(int sockfd, char *request_buffer, int request_len, struct dns
     sendto(sockfd, reply_buffer, total_len, 0, (struct sockaddr *)client_addr, addr_len);
 
     printf("Sent TXT response (%d bytes)\n", total_len);
+}
+
+int extractPayload(char *qname, char *payload)
+{
+    char *reader = qname;
+    for (int i = 0; i < strlen(qname); i++)
+    {
+        if (*reader == '.')
+        {
+            // Extract payload
+            int len = reader - qname;
+            // Copy payload to output
+            strncpy(payload, qname, len);
+            payload[len] = '\0';
+            return len;
+        }
+        reader++;
+    }
+    return 0; // Not found
 }

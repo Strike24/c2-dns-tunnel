@@ -16,38 +16,7 @@
 #include <netinet/in.h> // Definitions for IP addresses
 #include <arpa/inet.h>  // Utilities to convert IPs
 
-// A standard DNS header is exactly 12 bytes
-struct dns_header
-{
-    unsigned short id;        // 16-bit Transaction ID
-    unsigned short flags;     // 16-bit Flags (Query/Response, Opcode, ...)
-    unsigned short q_count;   // questions count
-    unsigned short ans_count; // answers count
-    unsigned short auth_count;
-    unsigned short add_count;
-} __attribute__((packed)); // Prevent compiler padding
-
-struct dns_question
-{
-    char name[256]; // Domain name (max 255 chars + null terminator)
-    unsigned short qtype;
-    unsigned short qclass;
-};
-
-struct dns_packet
-{
-    struct dns_header header;
-    struct dns_question question;
-};
-
-struct dns_answer
-{
-    unsigned short name;  // Pointer to question name
-    unsigned short type;  // qtype
-    unsigned short class; // qclass
-    unsigned int ttl;
-    unsigned short data_len; // Length of RDATA
-} __attribute__((packed));   // Prevent compiler padding
+#include "../headers/structs.h"
 
 /* Parses raw DNS packet data from the given buffer into a structured dns_packet object,
 extracting the DNS header, question name, question type, and question class fields.
@@ -55,4 +24,8 @@ extracting the DNS header, question name, question type, and question class fiel
 void parse_dns_packet(char *buffer, struct dns_packet *packet);
 
 void send_response(int sockfd, char *request_buffer, int request_len, struct dns_packet *parsed_packet, struct sockaddr_in *client_addr, socklen_t addr_len);
+
+// Extract payload from a given qname (first label in a domain)
+int extractPayload(char *qname, char *payload);
+
 #endif // LISTENER_H
