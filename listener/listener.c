@@ -105,40 +105,45 @@ void parse_dns_packet(char *buffer, struct dns_packet *packet)
 void send_response(int sockfd, char *request_buffer, int request_len, struct dns_packet *parsed_packet, struct sockaddr_in *client_addr, socklen_t addr_len)
 {
     char reply_buffer[MAX_BUFFER_SIZE];
+    memset(reply_buffer, 0, MAX_BUFFER_SIZE);
 
+    // --- HEADER ---
     struct dns_header *reply_header = (struct dns_header *)reply_buffer;
-
-    // Copying data to send a valid response back
-    reply_header->id = parsed_packet->header.id;           // Copy original ID
-    reply_header->flags = htons(0x8180);                   // Response, No Error
-    reply_header->q_count = parsed_packet->header.q_count; // Copy question count
-    reply_header->ans_count = htons(1);                    // adding one more answer
+    *reply_header = parsed_packet->header; // Copy ID and flags
+    reply_header->flags = htons(0x8180);   // Standard Response, No Error
+    reply_header->ans_count = htons(1);    // 1 Answer
     reply_header->auth_count = 0;
     reply_header->add_count = 0;
 
-    // Find the end of QClass in the original request buffer
-    char *q_section_start = request_buffer + DNS_HEADER_SIZE;
-    char *q_section_end = q_section_start;
+    // --- QUESTION SECTION ---
+    char *q_ptr = request_buffer + DNS_HEADER_SIZE; // find length of original question section
+    while (*q_ptr != 0)
+        q_ptr += (*q_ptr) + 1; // Skip labels
+    q_ptr += 1 + 2 + 2;        // Skip Null byte, QType(2), QClass(2)
 
-    while (*q_section_end != 0)
-    { // Find the null byte
-        q_section_end += *q_section_end + 1;
-    }
-    q_section_end += 5; // Skip the final 0x00, QTYPE (2), QCLASS (2)
+    int q_len = q_ptr - (request_buffer + DNS_HEADER_SIZE);
+    memcpy(reply_buffer + DNS_HEADER_SIZE, request_buffer + DNS_HEADER_SIZE, q_len);
 
-    int q_section_len = q_section_end - q_section_start;
+    // --- TXT Record for c2 payload ---
+    struct dns_answer *answer = (struct dns_answer *)(reply_buffer + DNS_HEADER_SIZE + q_len);
 
-    // Copy the raw question section to the reply buffer
-    memcpy(reply_buffer + DNS_HEADER_SIZE, q_section_start, q_section_len);
+    // Payload Data
+    const char *txt_data = "C2_RESPONSE_OK";
+    int txt_len = strlen(txt_data);
 
-    // Start writing the answer immediately after the question section.
-    // char *answer_start = reply_buffer + DNS_HEADER_SIZE + q_section_len;
+    answer->name = htons(0xC00C); // Pointer to Question Name
+    answer->type = htons(16);     // TXT
+    answer->class = htons(1);     // Class IN
+    answer->ttl = htonl(60);      // TTL 60s
+    answer->data_len = htons(txt_len + 1);
 
-    // *** C2 LOGIC GOES HERE ***
+    // Fill RDATA
+    char *rdata = (char *)answer + sizeof(struct dns_answer);
+    *rdata = (unsigned char)txt_len;      // First byte is length
+    memcpy(rdata + 1, txt_data, txt_len); // Then the string
 
-    int reply_len = DNS_HEADER_SIZE + q_section_len;
+    int total_len = DNS_HEADER_SIZE + q_len + sizeof(struct dns_answer) + txt_len + 1;
+    sendto(sockfd, reply_buffer, total_len, 0, (struct sockaddr *)client_addr, addr_len);
 
-    // --- STEP 4: SEND ---
-    sendto(sockfd, reply_buffer, reply_len, 0, (const struct sockaddr *)client_addr, addr_len);
-    printf("Valid NO_ERROR response sent back (Length: %d)\n", reply_len);
-};
+    printf("Sent TXT response (%d bytes)\n", total_len);
+}

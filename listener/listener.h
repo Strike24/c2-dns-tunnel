@@ -40,6 +40,15 @@ struct dns_packet
     struct dns_question question;
 };
 
+struct dns_answer
+{
+    unsigned short name;  // Pointer to question name
+    unsigned short type;  // qtype
+    unsigned short class; // qclass
+    unsigned int ttl;
+    unsigned short data_len; // Length of RDATA
+} __attribute__((packed));   // Prevent compiler padding
+
 /* Parses raw DNS packet data from the given buffer into a structured dns_packet object,
 extracting the DNS header, question name, question type, and question class fields.
 */
