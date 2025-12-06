@@ -4,7 +4,7 @@
 #define TRUE 1
 #define FALSE 0
 #define ERROR -1
-#define PORT 5353 // Non-privileged port for DNS
+#define PORT 53 // Non-privileged port for DNS
 #define MAX_BUFFER_SIZE 1024
 #define DNS_HEADER_SIZE 12
 

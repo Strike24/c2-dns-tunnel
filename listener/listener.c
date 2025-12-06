@@ -19,8 +19,8 @@ int main()
     }
 
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY; // Listen on all network cards
-    server_addr.sin_port = htons(PORT);       // Listen on port 5353
+    server_addr.sin_addr.s_addr = inet_addr("10.100.102.4");
+    server_addr.sin_port = htons(PORT); // Listen on port
 
     // Bind port for listening
     if ((bind(sockfd, (const struct sockaddr *)&server_addr, sizeof(server_addr)) < 0))
@@ -28,6 +28,10 @@ int main()
 
         perror("Port Binding failed.");
         exit(EXIT_FAILURE);
+    }
+    else
+    {
+        printf("Port %d successfully binded.\n", PORT);
     }
 
     printf("Listening on port %d for UDP packets..", PORT);
@@ -37,7 +41,10 @@ int main()
         // Wait until data packet, write from sockfd file to buffer
         int n = recvfrom(sockfd, (char *)buffer, MAX_BUFFER_SIZE, MSG_WAITALL, (struct sockaddr *)&client_addr, &addr_len);
         if (n < 0)
+        {
+            perror("Recv failed");
             continue;
+        }
         buffer[n] = '\0';
 
         // Packet Recived
