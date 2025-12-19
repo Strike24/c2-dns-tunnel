@@ -11,6 +11,7 @@
 #define DNS_HEADER_SIZE 12
 #define MAX_UDP_PACKET_SIZE 65536
 #define MAX_BUFFER_SIZE 1024
+#define MIN_ARGUMENTS 4
 
 #include "../headers/structs.h"
 

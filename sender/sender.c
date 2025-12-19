@@ -1,10 +1,17 @@
 #include "sender.h"
 
-int main()
+int main(int argc, char *argv[])
 {
-    const char *dns_server_ip = "127.0.0.1";
-    const char domain[MAX_BUFFER_SIZE] = "example.com";
-    char *payload = "run whoami";
+
+    if (argc < MIN_ARGUMENTS)
+    {
+        printf("Usage: %s <dns_server_ip> <domain> <payload>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    const char *dns_server_ip = argv[1];
+    const char *domain = argv[2];
+    char *payload = argv[3];
     char *encoded_payload = base64_encode(payload);
     char response[MAX_UDP_PACKET_SIZE];
 
