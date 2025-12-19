@@ -22,7 +22,7 @@
 /* Parses raw DNS packet data from the given buffer into a structured dns_packet object,
 extracting the DNS header, question name, question type, and question class fields.
 */
-void parse_dns_packet(char *buffer, struct dns_packet *packet);
+void parse_dns_packet(char *buffer, struct dns_packet *packet, int bytes_read);
 
 void send_response(int sockfd, char *request_buffer, int request_len, struct dns_packet *parsed_packet, struct sockaddr_in *client_addr, socklen_t addr_len);
 

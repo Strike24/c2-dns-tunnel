@@ -17,14 +17,19 @@ int handleCommand(char *cmd, char *output_buffer)
                 return ERROR;
             }
 
-            // --- THE FIX START ---
             char line_buffer[256]; // Temp buffer for one line
+            int current_length = 0;
             while (fgets(line_buffer, sizeof(line_buffer), fp) != NULL)
             {
+                int line_len = strlen(line_buffer);
                 // Only append if we have space left
-                if (strlen(output_buffer) + strlen(line_buffer) < 1023)
+                if (current_length + line_len < 1023)
                 {
-                    strcat(output_buffer, line_buffer);
+                    // Copy directly to end address for better time complexity
+                    memcpy(output_buffer + current_length, line_buffer, line_len);
+
+                    current_length += line_len;
+                    output_buffer[current_length] = '\0';
                 }
             }
             // --- THE FIX END ---

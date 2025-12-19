@@ -63,8 +63,8 @@ int send_dns_query(const char *server_ip, const char *domain, char *response, in
     struct sockaddr_in dns_server_addr;
     memset(&dns_server_addr, 0, sizeof(dns_server_addr));
     dns_server_addr.sin_family = AF_INET;
-    dns_server_addr.sin_port = htons(PORT);                     // DNS uses port 53
-    inet_pton(AF_INET, "127.0.0.1", &dns_server_addr.sin_addr); // Replace with your desired DNS server IP
+    dns_server_addr.sin_port = htons(PORT);                   // DNS uses port 53
+    inet_pton(AF_INET, server_ip, &dns_server_addr.sin_addr); // Replace with your desired DNS server IP
 
     int bytes = sendto(sockfd, (char *)&packet, packet_length, 0,
                        (struct sockaddr *)&dns_server_addr, sizeof(dns_server_addr));
