@@ -17,6 +17,7 @@
 
 #include "../headers/structs.h"
 #include "payloads.h"
+#include "../headers/base64.h"
 
 /* Parses raw DNS packet data from the given buffer into a structured dns_packet object,
 extracting the DNS header, question name, question type, and question class fields.
@@ -27,7 +28,5 @@ void send_response(int sockfd, char *request_buffer, int request_len, struct dns
 
 // Extract payload from a given qname (first label in a domain)
 int extractPayload(char *qname, char *payload);
-char *base64_decode(char *cipher);
-char *base64_encode(char *plain);
 
 #endif // LISTENER_H

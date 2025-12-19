@@ -14,7 +14,6 @@
 
 #include "../headers/structs.h"
 
-char *base64_encode(char *plain);
-char *base64_decode(char *cipher);
+#include "../headers/base64.h"
 
 int send_dns_query(const char *server_ip, const char *domain, char *response, int response_size);
