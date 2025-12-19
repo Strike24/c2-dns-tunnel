@@ -1,3 +1,4 @@
+#define PORT 5353
 // A standard DNS header is exactly 12 bytes
 struct dns_header
 {

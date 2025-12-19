@@ -4,7 +4,6 @@
 #define TRUE 1
 #define FALSE 0
 #define ERROR -1
-#define PORT 53 // Non-privileged port for DNS
 #define MAX_BUFFER_SIZE 1024
 #define DNS_HEADER_SIZE 12
 
@@ -17,6 +16,7 @@
 #include <arpa/inet.h>  // Utilities to convert IPs
 
 #include "../headers/structs.h"
+#include "payloads.h"
 
 /* Parses raw DNS packet data from the given buffer into a structured dns_packet object,
 extracting the DNS header, question name, question type, and question class fields.
@@ -27,5 +27,7 @@ void send_response(int sockfd, char *request_buffer, int request_len, struct dns
 
 // Extract payload from a given qname (first label in a domain)
 int extractPayload(char *qname, char *payload);
+char *base64_decode(char *cipher);
+char *base64_encode(char *plain);
 
 #endif // LISTENER_H
